@@ -84,17 +84,41 @@ st.markdown("""<div class="geo-background"><svg viewBox="0 0 1920 1080" preserve
 </svg></div>
 <div class="particles"><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="corner-circle bl"></div><div class="corner-circle rm"></div></div>""", unsafe_allow_html=True)
 
-# Header
-st.markdown(f"""<div class="nav-header"><div class="logo-area">{LOGO_SVG}<span class="logo-text">optimizar</span></div>
-<div class="nav-menu"><a class="nav-link" href="#" onclick="window.open('{URL_DASHBOARD}','D','width=1300,height=850,scrollbars=yes,resizable=yes');return false;">📊 Dashboard</a>
-<a class="nav-link" href="#" onclick="window.open('{URL_SOPORTE}','S','width=1000,height=700,scrollbars=yes,resizable=yes');return false;">💬 Soporte</a></div></div>""", unsafe_allow_html=True)
+# ============================================
+# HEADER - Links directos con target="_blank" (NO onclick)
+# ============================================
+st.markdown(f"""
+    <div class="nav-header">
+        <div class="logo-area">{LOGO_SVG}<span class="logo-text">optimizar</span></div>
+        <div class="nav-menu">
+            <a class="nav-link" href="{URL_DASHBOARD}" target="_blank" rel="noopener noreferrer">📊 Dashboard</a>
+            <a class="nav-link" href="{URL_SOPORTE}" target="_blank" rel="noopener noreferrer">💬 Soporte</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
-# 3 Botones
-st.markdown(f"""<div class="center-buttons">
-<a class="center-btn" href="#" onclick="window.open('{URL_AGENTE_EXTERNO}','AE','width=1200,height=800,scrollbars=yes,resizable=yes');return false;"><div class="center-btn-icon">🌐</div><div class="center-btn-label">Agente Externo</div><div class="center-btn-sub">Atención al cliente automatizada</div></a>
-<a class="center-btn" href="#" onclick="window.open('{URL_AGENTE_INTERNO}','AI','width=1200,height=800,scrollbars=yes,resizable=yes');return false;"><div class="center-btn-icon">🏢</div><div class="center-btn-label">Agente Interno</div><div class="center-btn-sub">Asistente para tu equipo</div></a>
-<a class="center-btn" href="#" onclick="window.open('{URL_CRM_CLIENTES}','CRM','width=1200,height=800,scrollbars=yes,resizable=yes');return false;"><div class="center-btn-icon">👥</div><div class="center-btn-label">CRM de Clientes</div><div class="center-btn-sub">Gestión y seguimiento</div></a>
-</div>""", unsafe_allow_html=True)
+# ============================================
+# 3 BOTONES - Links directos con target="_blank" (NO onclick)
+# ============================================
+st.markdown(f"""
+    <div class="center-buttons">
+        <a class="center-btn" href="{URL_AGENTE_EXTERNO}" target="_blank" rel="noopener noreferrer">
+            <div class="center-btn-icon">🌐</div>
+            <div class="center-btn-label">Agente Externo</div>
+            <div class="center-btn-sub">Atención al cliente automatizada</div>
+        </a>
+        <a class="center-btn" href="{URL_AGENTE_INTERNO}" target="_blank" rel="noopener noreferrer">
+            <div class="center-btn-icon">🏢</div>
+            <div class="center-btn-label">Agente Interno</div>
+            <div class="center-btn-sub">Asistente para tu equipo</div>
+        </a>
+        <a class="center-btn" href="{URL_CRM_CLIENTES}" target="_blank" rel="noopener noreferrer">
+            <div class="center-btn-icon">👥</div>
+            <div class="center-btn-label">CRM de Clientes</div>
+            <div class="center-btn-sub">Gestión y seguimiento</div>
+        </a>
+    </div>
+""", unsafe_allow_html=True)
 
 # ============================================
 # CARGAR DATOS
@@ -126,13 +150,12 @@ for col in [col_c, col_p, col_t]:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
 
-# Parsear fechas
 if col_fecha in df.columns:
     df['_fecha_parsed'] = pd.to_datetime(df[col_fecha], dayfirst=True, errors='coerce')
     df = df.dropna(subset=['_fecha_parsed']).sort_values('_fecha_parsed')
 
 # ============================================
-# FILTROS (Streamlit widgets)
+# FILTROS
 # ============================================
 st.markdown("""<div class="chart-section"><div class="chart-container">
 <div class="chart-title">📈 Métricas del Negocio <span class="live-badge"><span class="live-dot"></span>En vivo</span></div>
@@ -140,36 +163,28 @@ st.markdown("""<div class="chart-section"><div class="chart-container">
 
 col_l, col_filters, col_r = st.columns([1, 8, 1])
 with col_filters:
-    # Fila 1: Período rápido
     periodo = st.radio(
         "⏱ Período rápido",
         ["Todo", "Hoy", "7 días", "15 días", "30 días", "90 días", "Este mes", "Mes anterior", "Este año"],
-        horizontal=True,
-        index=0
+        horizontal=True, index=0
     )
-
-    # Fila 2: Rango personalizado
     col_from, col_to = st.columns(2)
     with col_from:
         fecha_desde = st.date_input("📅 Desde", value=None, format="DD/MM/YYYY")
     with col_to:
         fecha_hasta = st.date_input("📅 Hasta", value=None, format="DD/MM/YYYY")
 
-    # Fila 3: Métricas
     metricas_nombres = {col_c: "Consultas", col_p: "Presupuestos Enviados", col_t: "Contratos Enviados"}
     metricas_disponibles = [c for c in [col_c, col_p, col_t] if c in df.columns]
     metricas_seleccionadas = st.multiselect(
-        "📊 Métricas a mostrar",
-        options=metricas_disponibles,
-        default=metricas_disponibles,
-        format_func=lambda x: metricas_nombres.get(x, x)
+        "📊 Métricas a mostrar", options=metricas_disponibles,
+        default=metricas_disponibles, format_func=lambda x: metricas_nombres.get(x, x)
     )
 
-# Aplicar filtro de período
+# Aplicar filtro
 filtered = df.copy()
 if '_fecha_parsed' in filtered.columns:
     hoy = pd.Timestamp.now().normalize()
-    
     if fecha_desde and fecha_hasta:
         filtered = filtered[(filtered['_fecha_parsed'] >= pd.Timestamp(fecha_desde)) & (filtered['_fecha_parsed'] <= pd.Timestamp(fecha_hasta))]
     elif periodo != "Todo":
@@ -191,7 +206,7 @@ if '_fecha_parsed' in filtered.columns:
         elif periodo == "Este año":
             filtered = filtered[filtered['_fecha_parsed'].dt.year == hoy.year]
 
-# Tarjetas con datos filtrados
+# Tarjetas
 total_c = int(filtered[col_c].sum()) if col_c in filtered.columns else 0
 total_p = int(filtered[col_p].sum()) if col_p in filtered.columns else 0
 total_t = int(filtered[col_t].sum()) if col_t in filtered.columns else 0
@@ -210,9 +225,8 @@ with col_chart:
             chart_df = filtered.set_index(filtered['_fecha_parsed'].dt.strftime('%d/%m'))[metricas_seleccionadas]
         else:
             chart_df = filtered[metricas_seleccionadas]
-        
         chart_df.columns = [metricas_nombres.get(c, c) for c in chart_df.columns]
-        
+
         tab1, tab2, tab3 = st.tabs(["📈 Líneas", "📊 Barras", "📋 Tabla"])
         with tab1:
             st.line_chart(chart_df, use_container_width=True)
